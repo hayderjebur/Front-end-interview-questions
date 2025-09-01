@@ -111,3 +111,66 @@ const onChangeHandler = (e) => {
     });
   });
 };
+// -----------------------------------------------------------------------------
+//  component in React. The component should visually indicate progress based on a percentage (0-100),
+//  support both controlled and automatic modes, and be accessible. The progress bar must be animated
+//  and show progress updates smoothly.
+// ProgressBar component
+function ProgressBar({ value = 0, auto = false }) {
+  // State for auto mode
+  const [autoValue, setAutoValue] = useState(0);
+
+  useEffect(() => {
+    if (!auto) return; // Only animate if auto is true
+
+    let rafId;
+    let start = Date.now();
+
+    // Function to animate progress from 0 to 100 over 5 seconds
+    function animate() {
+      const elapsed = Date.now() - start;
+      const percent = Math.min(100, (elapsed / 5000) * 100);
+      setAutoValue(percent);
+
+      if (percent < 100) {
+        rafId = requestAnimationFrame(animate);
+      } else {
+        // Reset after reaching 100%
+        setTimeout(() => {
+          start = Date.now();
+          setAutoValue(0);
+          rafId = requestAnimationFrame(animate);
+        }, 800);
+      }
+    }
+    setAutoValue(0); // Start at 0
+    rafId = requestAnimationFrame(animate);
+
+    // Cleanup animation frame
+    return () => cancelAnimationFrame(rafId);
+  }, [auto]);
+
+  // Use either the controlled value or the auto value
+  const displayValue = auto ? autoValue : value;
+
+  return (
+    <div className='progressbar-container'>
+      <div className='progress-label'>{`${Math.round(displayValue)}%`}</div>
+      <div
+        className='progressbar-outer'
+        role='progressbar'
+        aria-valuenow={Math.round(displayValue)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label='Loading progress'
+      >
+        <div
+          className='progressbar-inner'
+          style={{
+            width: `${Math.max(0, Math.min(100, displayValue))}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
